@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Etiquetas - Gamarra v5.3</title>
+    <title>Generador de Etiquetas - Gamarra v5.4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
@@ -45,15 +45,15 @@
         .labels-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: flex-start; flex: 2; }
         .label-pair { display: flex; gap: 15px; margin-bottom: 30px; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #ddd; }
 
-        /* Ajuste de padding inferior de 2mm a 3.5mm para subir el QR */
         .label-preview { width: 62mm; height: 100mm; background: white; border: 1px solid #000; padding: 2mm 2mm 3.5mm 2mm; box-sizing: border-box; display: flex; flex-direction: column; position: relative; overflow: hidden; color: black; }
         
         .label-header { text-align: center; border-bottom: 1px solid #000; padding-bottom: 1mm; margin-bottom: 1mm; }
         .product-name { text-align: center; font-weight: 900; font-size: 10pt; margin-bottom: 1mm; text-transform: uppercase; display: flex; align-items: center; justify-content: center; min-height: 35px; line-height: 1.1;}
         .section-title { font-weight: bold; font-size: 6.5pt; border-bottom: 1px solid #000; margin-bottom: 1mm; text-transform: uppercase; background: #eee; padding-left: 1mm; }
         
-        .reg-text { font-size: 7.5pt; line-height: 1.1; margin-bottom: 2mm; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; flex-grow: 1; font-style: italic; width: 100%; }
-        .ing-text { font-size: 6.2pt; line-height: 1.2; flex-grow: 1; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; width: 100%; }
+        /* TEXTOS MÁS GRANDES Y LEGIBLES (8pt) */
+        .reg-text { font-size: 8pt; line-height: 1.25; margin-bottom: 2mm; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; flex-grow: 1; font-style: italic; width: 100%; }
+        .ing-text { font-size: 8pt; line-height: 1.25; flex-grow: 1; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; width: 100%; }
 
         .dates-box { display: flex; justify-content: space-between; font-size: 7pt; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 1mm 0; margin-bottom: 1mm; font-family: monospace; font-weight: bold; }
         .allergens-icons-wrapper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5mm; margin: 1mm 0; padding: 0 1mm; }
@@ -61,7 +61,6 @@
         .allergen-icon.active { color: #000; border-color: #000; }
         .allergen-icon.active::after { content: '✕'; position: absolute; font-size: 14pt; color: red; font-weight: bold; }
         
-        /* Pequeño margen extra en el footer */
         .label-footer { margin-top: auto; display: flex; align-items: center; gap: 10px; border-top: 1px solid #000; padding-top: 2mm; margin-bottom: 0.5mm; }
         
         .nutrition-table { width: 100%; border-collapse: collapse; font-size: 6.5pt; margin-top: 1mm; }
@@ -256,7 +255,6 @@ Texto: ${rawPDFText}`;
         setTimeout(() => {
             let url = document.getElementById('global-qr').value;
             globalRecipes.forEach((_, i) => {
-                // AQUÍ: El tamaño del QR sube de 42 a 48
                 qrCodes[i] = new QRCode(document.getElementById(`qr-${i}`), { text: url, width: 48, height: 48 });
             });
         }, 100);
