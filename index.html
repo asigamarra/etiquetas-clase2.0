@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gamarra - Generador v3.0 (Manual Seguro)</title>
+    <title>Gamarra - Generador v3.1 (Subelaboraciones)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
@@ -29,7 +29,7 @@
         .allergen-item { background: #f9f9f9; padding: 6px; border-radius: 6px; border: 1px solid #eee; display: flex; align-items: center; gap: 8px; font-size: 0.75rem; }
         .print-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem;}
 
-        /* ETIQUETAS (Iguales que antes) */
+        /* ETIQUETAS */
         .labels-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
         .label-preview { width: 62mm; height: 100mm; background: white; border: 1px dashed #999; padding: 2mm; box-sizing: border-box; display: flex; flex-direction: column; position: relative; overflow: hidden; }
         .label-header { text-align: center; border-bottom: 1px solid #000; padding-bottom: 1mm; margin-bottom: 1mm; }
@@ -56,7 +56,7 @@
 
 <div class="main-wrapper">
     <div class="admin-panel">
-        <h2>Generador Gamarra v3.0 (Manual)</h2>
+        <h2>Generador Gamarra v3.1 (Manual)</h2>
         
         <div class="step-box">
             <span class="step-title">Paso 1: Carga el PDF</span>
@@ -64,12 +64,12 @@
                 <p>📂 SELECCIONAR PDF GASTROKAIZEN</p>
                 <input type="file" id="pdf-file" accept="application/pdf" onchange="processPDF(event)">
             </label>
-            <button id="copy-text-btn" class="copy-btn" onclick="copyPrompt()">📋 COPIAR TEXTO PARA CHATGPT</button>
+            <button id="copy-text-btn" class="copy-btn" onclick="copyPrompt()">📋 COPIAR TEXTO PARA LA IA</button>
             <small id="pdf-status" style="color: #27ae60; display:none;">✅ Texto extraído. Dale al botón azul.</small>
         </div>
 
         <div class="step-box paste-zone">
-            <span class="step-title">Paso 2: Pega aquí la respuesta de la IA</span>
+            <span class="step-title">Paso 2: Pega aquí la respuesta de ChatGPT/Gemini</span>
             <textarea id="ai-paste" rows="3" placeholder="Pega aquí el código que te dé la IA..." oninput="parseAIResponse()"></textarea>
         </div>
 
@@ -78,8 +78,8 @@
         <label>Nombre del Plato</label>
         <input type="text" id="in-plato" oninput="update()">
         
-        <label>Ingredientes</label>
-        <textarea id="in-ing" oninput="update()" rows="3"></textarea>
+        <label>Ingredientes (Usa etiquetas &lt;b&gt; para negritas)</label>
+        <textarea id="in-ing" oninput="update()" rows="5"></textarea>
 
         <label>Instrucciones</label>
         <textarea id="in-reg" oninput="update()" rows="2"></textarea>
@@ -98,7 +98,7 @@
 
     <div class="labels-container">
         <div class="label-preview">
-            <div class="label-header"><img src="logo.png" style="max-height:8mm"></div>
+            <div class="label-header"><img src="logo.png" style="max-height:8mm" onerror="this.style.opacity='0'"></div>
             <div class="product-name" id="out-plato">NOMBRE DEL PLATO</div>
             <div class="section-title">Regeneración</div>
             <div class="reg-text" id="out-reg">...</div>
@@ -110,7 +110,7 @@
         <div class="label-preview">
             <div class="section-title">Ingredientes</div>
             <div style="font-size:6pt; line-height:1.2; flex-grow:1" id="out-ing"></div>
-            <div class="section-title">Nutrición (por 100g)</div>
+            <div class="section-title">Nutrición Estimada (por 100g)</div>
             <table class="nutrition-table" id="nut-table">
                 <tr><th>Valor Energético</th><td id="n-0">-</td></tr>
                 <tr><th>Grasas</th><td id="n-1">-</td></tr>
@@ -128,7 +128,6 @@
     const iconos = ["🌾", "🦐", "🥚", "🐟", "🥜", "🫘", "🥛", "🌰", "🌱", "🌭", "🍪", "🧪", "🌼", "🐚"];
     let rawPDFText = "";
 
-    // Generar checks e iconos
     const grid = document.getElementById('allergen-inputs');
     const iconsWrapper = document.getElementById('out-allergens');
     alergenosList.forEach((a, i) => {
@@ -141,7 +140,11 @@
     function update() {
         document.getElementById('out-plato').innerText = document.getElementById('in-plato').value.toUpperCase() || "NOMBRE";
         document.getElementById('out-reg').innerText = document.getElementById('in-reg').value;
-        document.getElementById('out-ing').innerText = document.getElementById('in-ing').value;
+        
+        // Usar innerHTML para que las etiquetas <b> se conviertan en negritas reales en la etiqueta
+        let textIng = document.getElementById('in-ing').value;
+        document.getElementById('out-ing').innerHTML = textIng;
+
         document.getElementById('out-prod').innerText = document.getElementById('in-prod').value;
         document.getElementById('out-cad').innerText = document.getElementById('in-cad').value;
         
@@ -170,18 +173,26 @@
     }
 
     function copyPrompt() {
-        const prompt = `Analiza esta receta de GastroKAIZEN y devuélveme SOLO un objeto JSON con esta estructura (sin textos extra):
-        {"plato": "Nombre Limpio", "ingredientes": "Lista limpia", "alergenos": ["Nombre1", "Nombre2"], "nutricion": ["Kcal", "Grasas", "Hidratos", "Azucares", "Proteinas", "Sal"]}
-        Texto: ${rawPDFText}`;
+        const prompt = `Actúa como un experto en nutrición y tecnología de los alimentos. Analiza esta ficha técnica y devuélveme SOLO un objeto JSON válido, sin texto adicional ni bloques de código.
+
+Reglas:
+1. "plato": Nombre del plato principal.
+2. "ingredientes": Redacta los ingredientes de la elaboración principal. Luego, si existen subelaboraciones, añade el nombre de la subelaboración entre etiquetas HTML <b> y </b>, seguido de dos puntos y sus ingredientes separados por comas. (Ejemplo: patata, cebolla. <b>Mayonesa:</b> aceite, huevo, sal). Todo en una sola línea de texto.
+3. "alergenos": Array exacto con alérgenos detectados.
+4. "nutricion": Estima tú mismo los valores nutricionales por 100g de producto final. Devuelve un array con 6 datos como string: ["250 kcal", "15 g", "20 g", "5 g", "10 g", "1.2 g"] (Calorías, Grasas, H.Carbono, Azúcares, Proteínas, Sal).
+
+Texto a analizar: ${rawPDFText}`;
         
         navigator.clipboard.writeText(prompt);
-        alert("¡Texto copiado! Ahora pégalo en ChatGPT o Gemini y el resultado que te dé, pégalo en el Paso 2.");
+        alert("¡Texto copiado! Ahora pégalo en ChatGPT/Gemini y pega el resultado en el Paso 2.");
     }
 
     function parseAIResponse() {
         try {
-            const val = document.getElementById('ai-paste').value;
-            const data = JSON.parse(val.substring(val.indexOf('{'), val.lastIndexOf('}') + 1));
+            let val = document.getElementById('ai-paste').value;
+            // Limpia por si ChatGPT añade ```json al principio
+            val = val.substring(val.indexOf('{'), val.lastIndexOf('}') + 1);
+            const data = JSON.parse(val);
             
             document.getElementById('in-plato').value = data.plato;
             document.getElementById('in-ing').value = data.ingredientes;
@@ -191,9 +202,11 @@
                 c.checked = data.alergenos.includes(c.getAttribute('data-name'));
             });
 
-            data.nutricion.forEach((v, i) => {
-                document.getElementById('n-' + i).innerText = v;
-            });
+            if(data.nutricion && data.nutricion.length === 6) {
+                data.nutricion.forEach((v, i) => {
+                    document.getElementById('n-' + i).innerText = v;
+                });
+            }
 
             let hoy = new Date();
             document.getElementById('in-prod').valueAsDate = hoy;
