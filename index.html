@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gamarra - Generador v2.0 (IA Groq)</title>
+    <title>Gamarra - Generador v3.0 (Manual Seguro)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
@@ -14,56 +14,41 @@
         @media (min-width: 900px) { .main-wrapper { flex-direction: row; align-items: flex-start; } }
 
         .admin-panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); flex: 1; max-height: 95vh; overflow-y: auto;}
-        h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
-        label { display: block; margin-top: 10px; font-weight: bold; font-size: 0.85rem; }
-        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         
-        .ai-config { background: #e8f4f8; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #bce0fd; }
-        .ai-config input { background: white; }
-        .pdf-upload-zone { border: 2px dashed #9b59b6; background: #f9f0ff; padding: 15px; text-align: center; border-radius: 8px; cursor: pointer; margin-bottom: 15px; transition: 0.3s; }
-        .pdf-upload-zone:hover { background: #f3e5fc; }
-        .pdf-upload-zone input[type="file"] { display: none; }
-        .pdf-upload-zone p { margin: 0; color: #8e44ad; font-weight: bold; }
-        .loading-text { display: none; color: #8e44ad; font-weight: bold; margin-top: 5px; }
-
+        .step-box { background: #fff5eb; border: 1px solid #f39c12; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .step-title { font-weight: bold; color: #d35400; margin-bottom: 10px; display: block; }
+        
+        .pdf-upload-zone { border: 2px dashed #3498db; background: #ebf5fb; padding: 15px; text-align: center; border-radius: 8px; cursor: pointer; margin-bottom: 10px; display: block; }
+        
+        .copy-btn { background: #3498db; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 10px; display: none; }
+        
+        .paste-zone { background: #e8f8f5; border: 1px solid #27ae60; padding: 10px; border-radius: 8px; }
+        
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         .allergen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 10px; }
-        .allergen-item { background: #f9f9f9; padding: 6px; border-radius: 6px; border: 1px solid #eee; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.75rem; }
-        .allergen-item input { width: 16px; height: 16px; margin: 0; }
+        .allergen-item { background: #f9f9f9; padding: 6px; border-radius: 6px; border: 1px solid #eee; display: flex; align-items: center; gap: 8px; font-size: 0.75rem; }
         .print-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem;}
 
+        /* ETIQUETAS (Iguales que antes) */
         .labels-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-
-        .label-preview {
-            width: 62mm; height: 100mm; background: white; border: 1px dashed #999;
-            padding: 2mm; box-sizing: border-box; display: flex; flex-direction: column;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; overflow: hidden;
-        }
-
+        .label-preview { width: 62mm; height: 100mm; background: white; border: 1px dashed #999; padding: 2mm; box-sizing: border-box; display: flex; flex-direction: column; position: relative; overflow: hidden; }
         .label-header { text-align: center; border-bottom: 1px solid #000; padding-bottom: 1mm; margin-bottom: 1mm; }
-        .label-header img { max-width: 70%; max-height: 8mm; object-fit: contain; }
-        .product-name { text-align: center; font-weight: 900; font-size: 11pt; margin-bottom: 1mm; text-transform: uppercase; min-height: 18pt; display: flex; align-items: center; justify-content: center;}
+        .product-name { text-align: center; font-weight: 900; font-size: 11pt; margin-bottom: 1mm; text-transform: uppercase; display: flex; align-items: center; justify-content: center; min-height: 40px;}
         .section-title { font-weight: bold; font-size: 6.5pt; border-bottom: 1px solid #000; margin-bottom: 1mm; text-transform: uppercase; background: #eee; padding-left: 1mm; }
         .reg-text { font-size: 7.5pt; line-height: 1.1; margin-bottom: 2mm; white-space: pre-wrap; flex-grow: 1; }
         .dates-box { display: flex; justify-content: space-between; font-size: 7pt; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 1mm 0; margin-bottom: 1mm; font-family: monospace; font-weight: bold; }
         .allergens-icons-wrapper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5mm; margin: 1mm 0; padding: 0 1mm; }
-        .allergen-icon { width: 8.5mm; height: 8.5mm; border: 0.5px solid #ccc; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 11pt; position: relative; }
+        .allergen-icon { width: 8.5mm; height: 8.5mm; border: 0.5px solid #ccc; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 11pt; position: relative; color: #ccc;}
+        .allergen-icon.active { color: #000; border-color: #000; }
         .allergen-icon.active::after { content: '✕'; position: absolute; font-size: 14pt; color: red; font-weight: bold; }
         .label-footer { margin-top: auto; display: flex; align-items: center; gap: 8px; border-top: 1px solid #000; padding-top: 2mm; }
-        #qrcode { background: white; }
-        .qr-info { font-size: 5.5pt; font-weight: bold; line-height: 1.1; text-transform: uppercase; }
-
-        .ing-text { font-size: 6pt; line-height: 1.2; text-align: justify; margin-bottom: 2mm; }
-        .ing-text strong { text-transform: uppercase; }
         .nutrition-table { width: 100%; border-collapse: collapse; font-size: 6.5pt; margin-top: 2mm; }
         .nutrition-table th, .nutrition-table td { border: 1px solid #000; padding: 1mm; text-align: left; }
-        .nutrition-table th { font-weight: bold; text-align: center; }
-        .nutrition-table .sub { padding-left: 3mm; font-size: 6pt; }
 
         @media print {
+            .admin-panel { display: none; }
             body { background: white; padding: 0; }
-            .admin-panel, .preview-container > span { display: none; }
-            .labels-container { gap: 0; }
-            .label-preview { border: none; box-shadow: none; page-break-after: always; margin: 0;}
+            .label-preview { border: none; box-shadow: none; page-break-after: always; }
         }
     </style>
 </head>
@@ -71,26 +56,32 @@
 
 <div class="main-wrapper">
     <div class="admin-panel">
-        <h2>Panel v2.0 (IA Llama3 - Groq)</h2>
+        <h2>Generador Gamarra v3.0 (Manual)</h2>
         
-        <div class="ai-config">
-            <label style="margin-top:0;">🔑 Clave API Groq (Empieza por gsk_...)</label>
-            <input type="password" id="api-key" placeholder="Pega aquí tu clave gsk_..." onchange="saveKey()">
+        <div class="step-box">
+            <span class="step-title">Paso 1: Carga el PDF</span>
+            <label for="pdf-file" class="pdf-upload-zone">
+                <p>📂 SELECCIONAR PDF GASTROKAIZEN</p>
+                <input type="file" id="pdf-file" accept="application/pdf" onchange="processPDF(event)">
+            </label>
+            <button id="copy-text-btn" class="copy-btn" onclick="copyPrompt()">📋 COPIAR TEXTO PARA CHATGPT</button>
+            <small id="pdf-status" style="color: #27ae60; display:none;">✅ Texto extraído. Dale al botón azul.</small>
         </div>
 
-        <label for="pdf-file" class="pdf-upload-zone">
-            <p>🤖 SUBIR PDF Y ANALIZAR CON IA</p>
-            <div id="loading-msg" class="loading-text">Analizando receta... espere.</div>
-            <input type="file" id="pdf-file" accept="application/pdf" onchange="processPDF(event)">
-        </label>
+        <div class="step-box paste-zone">
+            <span class="step-title">Paso 2: Pega aquí la respuesta de la IA</span>
+            <textarea id="ai-paste" rows="3" placeholder="Pega aquí el código que te dé la IA..." oninput="parseAIResponse()"></textarea>
+        </div>
 
+        <hr>
+        
         <label>Nombre del Plato</label>
         <input type="text" id="in-plato" oninput="update()">
         
-        <label>Lista de Ingredientes</label>
+        <label>Ingredientes</label>
         <textarea id="in-ing" oninput="update()" rows="3"></textarea>
 
-        <label>Instrucciones de Regeneración</label>
+        <label>Instrucciones</label>
         <textarea id="in-reg" oninput="update()" rows="2"></textarea>
 
         <div style="display:flex; gap:10px;">
@@ -98,195 +89,116 @@
             <div style="flex:1"><label>F. Caducidad</label><input type="date" id="in-cad" oninput="update()"></div>
         </div>
 
-        <label>URL Receta (QR)</label>
-        <input type="text" id="in-qr" oninput="updateQR()" value="https://gamarra.eus">
-
-        <label>Alérgenos Detectados</label>
-        <div class="allergen-grid">
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Gluten" id="alg-0" onchange="update()"> 🌾 Gluten</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Crustáceos" id="alg-1" onchange="update()"> 🦐 Crustáceos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Huevos" id="alg-2" onchange="update()"> 🥚 Huevos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Pescado" id="alg-3" onchange="update()"> 🐟 Pescado</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Cacahuete" id="alg-4" onchange="update()"> 🥜 Cacahuete</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Soja" id="alg-5" onchange="update()"> 🫘 Soja</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Leche" id="alg-6" onchange="update()"> 🥛 Lácteos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="F.cáscara" id="alg-7" onchange="update()"> 🌰 F. Cáscara</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Apio" id="alg-8" onchange="update()"> 🌱 Apio</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Mostaza" id="alg-9" onchange="update()"> 🌭 Mostaza</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Sésamo" id="alg-10" onchange="update()"> 🍪 Sésamo</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Sulfitos" id="alg-11" onchange="update()"> 🧪 Sulfitos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Altramuces" id="alg-12" onchange="update()"> 🌼 Altramuz</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Moluscos" id="alg-13" onchange="update()"> 🐚 Moluscos</label>
-        </div>
+        <label>Alérgenos</label>
+        <div class="allergen-grid" id="allergen-inputs">
+            </div>
 
         <button class="print-btn" onclick="window.print()">🖨️ IMPRIMIR ETIQUETAS</button>
     </div>
 
     <div class="labels-container">
-        <div class="preview-container">
-            <div class="label-preview">
-                <div class="label-header"><img src="logo.png" alt="Gamarra" onerror="this.style.opacity='0'"></div>
-                <div class="product-name" id="out-plato">NOMBRE DEL PLATO</div>
-                <div class="section-title">Regeneración</div>
-                <div class="reg-text" id="out-reg">Instrucciones...</div>
-                <div class="dates-box"><span>ELAB: <span id="out-prod">--/--/--</span></span><span>CAD: <span id="out-cad">--/--/--</span></span></div>
-                <div class="section-title">Información de Alérgenos</div>
-                <div class="allergens-icons-wrapper" id="out-allergens">
-                    <div class="allergen-icon">🌾</div><div class="allergen-icon">🦐</div><div class="allergen-icon">🥚</div><div class="allergen-icon">🐟</div><div class="allergen-icon">🥜</div><div class="allergen-icon">🫘</div><div class="allergen-icon">🥛</div><div class="allergen-icon">🌰</div><div class="allergen-icon">🌱</div><div class="allergen-icon">🌭</div><div class="allergen-icon">🍪</div><div class="allergen-icon">🧪</div><div class="allergen-icon">🌼</div><div class="allergen-icon">🐚</div>
-                </div>
-                <div class="label-footer"><div id="qrcode"></div><div class="qr-info">ESCANEAME PARA<br>RECETA E HISTORIA</div></div>
-            </div>
+        <div class="label-preview">
+            <div class="label-header"><img src="logo.png" style="max-height:8mm"></div>
+            <div class="product-name" id="out-plato">NOMBRE DEL PLATO</div>
+            <div class="section-title">Regeneración</div>
+            <div class="reg-text" id="out-reg">...</div>
+            <div class="dates-box"><span>ELAB: <span id="out-prod">--/--/--</span></span><span>CAD: <span id="out-cad">--/--/--</span></span></div>
+            <div class="section-title">Alérgenos</div>
+            <div class="allergens-icons-wrapper" id="out-allergens"></div>
+            <div class="label-footer"><div id="qrcode"></div><div style="font-size:5.5pt">ESCANEAME PARA<br>VER RECETA</div></div>
         </div>
-        <div class="preview-container">
-            <div class="label-preview">
-                <div class="label-header" style="border:none; margin-bottom:0; padding-bottom:0;"><div style="font-size: 8pt; font-weight: bold; text-align: center;">INFORMACIÓN ADICIONAL</div></div>
-                <div class="section-title" style="margin-top:2mm;">Ingredientes</div>
-                <div class="ing-text" id="out-ing"><strong>Ingredientes:</strong> Esperando IA...</div>
-                <div class="section-title" style="margin-top:auto;">Información Nutricional (Por 100g)</div>
-                <table class="nutrition-table">
-                    <tr><th>Valor Energético</th><td id="nut-cal">--- kcal</td></tr>
-                    <tr><th>Grasas</th><td id="nut-fat">--- g</td></tr>
-                    <tr><td class="sub">de las cuales saturadas</td><td id="nut-sat">--- g</td></tr>
-                    <tr><th>Hidratos de Carbono</th><td id="nut-car">--- g</td></tr>
-                    <tr><td class="sub">de los cuales azúcares</td><td id="nut-sug">--- g</td></tr>
-                    <tr><th>Proteínas</th><td id="nut-pro">--- g</td></tr>
-                    <tr><th>Sal</th><td id="nut-sal">--- g</td></tr>
-                </table>
-            </div>
+        <div class="label-preview">
+            <div class="section-title">Ingredientes</div>
+            <div style="font-size:6pt; line-height:1.2; flex-grow:1" id="out-ing"></div>
+            <div class="section-title">Nutrición (por 100g)</div>
+            <table class="nutrition-table" id="nut-table">
+                <tr><th>Valor Energético</th><td id="n-0">-</td></tr>
+                <tr><th>Grasas</th><td id="n-1">-</td></tr>
+                <tr><th>H. Carbono</th><td id="n-2">-</td></tr>
+                <tr><th>Azúcares</th><td id="n-3">-</td></tr>
+                <tr><th>Proteínas</th><td id="n-4">-</td></tr>
+                <tr><th>Sal</th><td id="n-5">-</td></tr>
+            </table>
         </div>
     </div>
 </div>
 
 <script>
+    const alergenosList = ["Gluten", "Crustáceos", "Huevos", "Pescado", "Cacahuete", "Soja", "Leche", "F.cáscara", "Apio", "Mostaza", "Sésamo", "Sulfitos", "Altramuces", "Moluscos"];
+    const iconos = ["🌾", "🦐", "🥚", "🐟", "🥜", "🫘", "🥛", "🌰", "🌱", "🌭", "🍪", "🧪", "🌼", "🐚"];
+    let rawPDFText = "";
+
+    // Generar checks e iconos
+    const grid = document.getElementById('allergen-inputs');
+    const iconsWrapper = document.getElementById('out-allergens');
+    alergenosList.forEach((a, i) => {
+        grid.innerHTML += `<label class="allergen-item"><input type="checkbox" class="alg" data-name="${a}" onchange="update()"> ${iconos[i]} ${a}</label>`;
+        iconsWrapper.innerHTML += `<div class="allergen-icon">${iconos[i]}</div>`;
+    });
+
     var qrcode = new QRCode(document.getElementById("qrcode"), { text: "https://gamarra.eus", width: 45, height: 45 });
 
-    window.onload = function() {
-        let savedKey = localStorage.getItem('gamarra_groq_key');
-        if(savedKey) document.getElementById('api-key').value = savedKey;
-        update();
-    }
-
-    function saveKey() {
-        localStorage.setItem('gamarra_groq_key', document.getElementById('api-key').value);
-    }
-
-    function updateQR() {
-        var url = document.getElementById('in-qr').value;
-        if(url) { qrcode.clear(); qrcode.makeCode(url); }
-    }
-
-    function formatDate(dateStr) {
-        if(!dateStr) return "--/--/--";
-        const parts = dateStr.split("-");
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-
     function update() {
-        document.getElementById('out-plato').innerText = document.getElementById('in-plato').value.toUpperCase() || "NOMBRE DEL PLATO";
-        document.getElementById('out-reg').innerText = document.getElementById('in-reg').value || "Instrucciones...";
-        let ingText = document.getElementById('in-ing').value;
-        document.getElementById('out-ing').innerHTML = "<strong>Ingredientes:</strong> " + (ingText || "No especificados.");
-        document.getElementById('out-prod').innerText = formatDate(document.getElementById('in-prod').value);
-        document.getElementById('out-cad').innerText = formatDate(document.getElementById('in-cad').value);
+        document.getElementById('out-plato').innerText = document.getElementById('in-plato').value.toUpperCase() || "NOMBRE";
+        document.getElementById('out-reg').innerText = document.getElementById('in-reg').value;
+        document.getElementById('out-ing').innerText = document.getElementById('in-ing').value;
+        document.getElementById('out-prod').innerText = document.getElementById('in-prod').value;
+        document.getElementById('out-cad').innerText = document.getElementById('in-cad').value;
         
         const checks = document.querySelectorAll('.alg');
-        const iconsFront = document.querySelectorAll('.allergen-icon');
+        const icons = document.querySelectorAll('.allergen-icon');
         checks.forEach((c, i) => {
-            if(c.checked) iconsFront[i].classList.add('active');
-            else iconsFront[i].classList.remove('active');
+            if(c.checked) icons[i].classList.add('active');
+            else icons[i].classList.remove('active');
         });
     }
 
     async function processPDF(event) {
         const file = event.target.files[0];
-        const apiKey = document.getElementById('api-key').value.trim();
-        
-        if (!apiKey) { alert("¡Necesitas poner tu API Key de Groq arriba primero!"); return; }
         if (!file) return;
-
-        document.getElementById('loading-msg').style.display = 'block';
-
-        const fileReader = new FileReader();
-        fileReader.onload = async function() {
-            try {
-                const typedarray = new Uint8Array(this.result);
-                const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                let fullText = "";
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    fullText += textContent.items.map(item => item.str).join(" ") + " ";
-                }
-
-                await analizarConIA(fullText, apiKey);
-
-            } catch (error) {
-                alert("Error al procesar el PDF.");
-                console.error(error);
-            } finally {
-                document.getElementById('loading-msg').style.display = 'none';
-            }
-        };
-        fileReader.readAsArrayBuffer(file);
+        const typedarray = new Uint8Array(await file.arrayBuffer());
+        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+        let text = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            text += content.items.map(item => item.str).join(" ") + " ";
+        }
+        rawPDFText = text;
+        document.getElementById('copy-text-btn').style.display = 'block';
+        document.getElementById('pdf-status').style.display = 'inline';
     }
 
-    async function analizarConIA(textoPDF, apiKey) {
-        const prompt = `
-        Eres un experto en seguridad alimentaria. Extrae la información en formato JSON válido.
-        1. "plato": Nombre del plato (ignora el nombre del alumno, ej: Unax Barrio).
-        2. "ingredientes": Lista agrupada y ordenada de mayor a menor peso separada por comas.
-        3. "alergenos": Array con alérgenos marcados (usa: Gluten, Crustáceos, Huevos, Pescado, Cacahuete, Soja, Leche, F.cáscara, Apio, Mostaza, Sésamo, Sulfitos, Altramuces, Moluscos).
-        4. "nutricion": Estima los valores nutricionales por 100g.
-        Estructura obligatoria: {"plato": "Nombre", "ingredientes": "ing1...", "alergenos": ["Gluten"], "nutricion": {"cal": "250", "fat": "10", "sat": "2", "car": "30", "sug": "5", "pro": "10", "sal": "1"}}
-        Texto: ${textoPDF}
-        `;
+    function copyPrompt() {
+        const prompt = `Analiza esta receta de GastroKAIZEN y devuélveme SOLO un objeto JSON con esta estructura (sin textos extra):
+        {"plato": "Nombre Limpio", "ingredientes": "Lista limpia", "alergenos": ["Nombre1", "Nombre2"], "nutricion": ["Kcal", "Grasas", "Hidratos", "Azucares", "Proteinas", "Sal"]}
+        Texto: ${rawPDFText}`;
+        
+        navigator.clipboard.writeText(prompt);
+        alert("¡Texto copiado! Ahora pégalo en ChatGPT o Gemini y el resultado que te dé, pégalo en el Paso 2.");
+    }
 
+    function parseAIResponse() {
         try {
-            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: "llama3-8b-8192",
-                    messages: [{ role: "user", content: prompt }],
-                    response_format: { type: "json_object" }
-                })
-            });
-
-            if (!response.ok) throw new Error("API Key bloqueada o incorrecta.");
-
-            const data = await response.json();
-            const info = JSON.parse(data.choices[0].message.content);
-
-            document.getElementById('in-plato').value = info.plato;
-            document.getElementById('in-ing').value = info.ingredientes + ".";
-
+            const val = document.getElementById('ai-paste').value;
+            const data = JSON.parse(val.substring(val.indexOf('{'), val.lastIndexOf('}') + 1));
+            
+            document.getElementById('in-plato').value = data.plato;
+            document.getElementById('in-ing').value = data.ingredientes;
+            
             const checks = document.querySelectorAll('.alg');
-            checks.forEach(c => c.checked = false);
-            info.alergenos.forEach(alg => {
-                const checkbox = document.querySelector(`.alg[data-name="${alg}"]`);
-                if(checkbox) checkbox.checked = true;
+            checks.forEach(c => {
+                c.checked = data.alergenos.includes(c.getAttribute('data-name'));
             });
 
-            document.getElementById('nut-cal').innerText = info.nutricion.cal + " kcal";
-            document.getElementById('nut-fat').innerText = info.nutricion.fat + " g";
-            document.getElementById('nut-sat').innerText = info.nutricion.sat + " g";
-            document.getElementById('nut-car').innerText = info.nutricion.car + " g";
-            document.getElementById('nut-sug').innerText = info.nutricion.sug + " g";
-            document.getElementById('nut-pro').innerText = info.nutricion.pro + " g";
-            document.getElementById('nut-sal').innerText = info.nutricion.sal + " g";
+            data.nutricion.forEach((v, i) => {
+                document.getElementById('n-' + i).innerText = v;
+            });
 
-            let hoy = new Date(); let cad = new Date(); cad.setDate(hoy.getDate() + 3);
+            let hoy = new Date();
             document.getElementById('in-prod').valueAsDate = hoy;
-            document.getElementById('in-cad').valueAsDate = cad;
-
             update();
-
-        } catch (error) {
-            alert("Error al conectar con Groq. " + error.message);
-        }
+        } catch (e) { console.log("Esperando JSON válido..."); }
     }
 </script>
 </body>
