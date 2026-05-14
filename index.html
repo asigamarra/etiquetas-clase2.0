@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gamarra - Generador v2.0 (Doble Etiqueta)</title>
+    <title>Gamarra - Generador v2.0 (Lector PDF Real)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        // Configurar el "trabajador" del lector de PDF
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
     <style>
         :root { --primary: #2c3e50; --bg: #f4f7f6; }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
@@ -17,7 +22,15 @@
         label { display: block; margin-top: 10px; font-weight: bold; font-size: 0.85rem; }
         input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         
-        .pdf-btn { width: 100%; background: #e67e22; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        /* Zona de subida de PDF */
+        .pdf-upload-zone { 
+            border: 2px dashed #e67e22; background: #fff5eb; padding: 15px; 
+            text-align: center; border-radius: 8px; cursor: pointer; margin-bottom: 15px; transition: 0.3s;
+        }
+        .pdf-upload-zone:hover { background: #ffe8d1; }
+        .pdf-upload-zone input[type="file"] { display: none; }
+        .pdf-upload-zone p { margin: 0; color: #d35400; font-weight: bold; }
+        .loading-text { display: none; color: #27ae60; font-weight: bold; margin-top: 5px; }
 
         .allergen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 10px; }
         .allergen-item { background: #f9f9f9; padding: 6px; border-radius: 6px; border: 1px solid #eee; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.75rem; }
@@ -60,7 +73,6 @@
             body { background: white; padding: 0; }
             .admin-panel, .preview-container > span { display: none; }
             .labels-container { gap: 0; }
-            /* Salto de página para que salgan en etiquetas separadas en el rollo de impresión */
             .label-preview { border: none; box-shadow: none; page-break-after: always; margin: 0;}
         }
     </style>
@@ -69,15 +81,19 @@
 
 <div class="main-wrapper">
     <div class="admin-panel">
-        <h2>Panel v2.0 (Multietiqueta)</h2>
+        <h2>Panel v2.0 (Lector Inteligente)</h2>
         
-        <button class="pdf-btn" onclick="fillFromPDF()">📄 Extraer datos de PDF GastroKAIZEN (Auto-relleno)</button>
+        <label for="pdf-file" class="pdf-upload-zone">
+            <p>📂 HAZ CLIC PARA SUBIR PDF GASTROKAIZEN</p>
+            <div id="loading-msg" class="loading-text">⚙️ Leyendo documento...</div>
+            <input type="file" id="pdf-file" accept="application/pdf" onchange="processPDF(event)">
+        </label>
 
         <label>Nombre del Plato</label>
-        <input type="text" id="in-plato" oninput="update()" placeholder="Ej: Lasaña">
+        <input type="text" id="in-plato" oninput="update()" placeholder="Se rellenará solo...">
         
-        <label>Lista de Ingredientes (Ordenados por cantidad)</label>
-        <textarea id="in-ing" oninput="update()" rows="3" placeholder="Manzana golden (35%), Harina de trigo (13%), Leche (11%)..."></textarea>
+        <label>Lista de Ingredientes (Revisar tras lectura)</label>
+        <textarea id="in-ing" oninput="update()" rows="3" placeholder="Aparecerán aquí..."></textarea>
 
         <label>Instrucciones de Regeneración</label>
         <textarea id="in-reg" oninput="update()" rows="2"></textarea>
@@ -96,68 +112,48 @@
         <label>URL Receta (QR)</label>
         <input type="text" id="in-qr" oninput="updateQR()" value="https://gamarra.eus">
 
-        <label>Alérgenos (Marca los presentes)</label>
+        <label>Alérgenos Detectados (Revisar manualmente)</label>
         <div class="allergen-grid">
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-0" onchange="update()"> 🌾 Gluten</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-1" onchange="update()"> 🦐 Crustáceos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-2" onchange="update()"> 🥚 Huevos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-3" onchange="update()"> 🐟 Pescado</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-4" onchange="update()"> 🥜 Cacahuete</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-5" onchange="update()"> 🫘 Soja</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-6" onchange="update()"> 🥛 Lácteos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-7" onchange="update()"> 🌰 F. Cáscara</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-8" onchange="update()"> 🌱 Apio</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-9" onchange="update()"> 🌭 Mostaza</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-10" onchange="update()"> 🍪 Sésamo</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-11" onchange="update()"> 🧪 Sulfitos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-12" onchange="update()"> 🌼 Altramuz</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-13" onchange="update()"> 🐚 Moluscos</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Gluten" id="alg-0" onchange="update()"> 🌾 Gluten</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Crustáceos" id="alg-1" onchange="update()"> 🦐 Crustáceos</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Huevos" id="alg-2" onchange="update()"> 🥚 Huevos</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Pescado" id="alg-3" onchange="update()"> 🐟 Pescado</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Cacahuete" id="alg-4" onchange="update()"> 🥜 Cacahuete</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Soja" id="alg-5" onchange="update()"> 🫘 Soja</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Leche" id="alg-6" onchange="update()"> 🥛 Lácteos</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="F.cáscara" id="alg-7" onchange="update()"> 🌰 F. Cáscara</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Apio" id="alg-8" onchange="update()"> 🌱 Apio</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Mostaza" id="alg-9" onchange="update()"> 🌭 Mostaza</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Sésamo" id="alg-10" onchange="update()"> 🍪 Sésamo</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Sulfitos" id="alg-11" onchange="update()"> 🧪 Sulfitos</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Altramuces" id="alg-12" onchange="update()"> 🌼 Altramuz</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" data-name="Moluscos" id="alg-13" onchange="update()"> 🐚 Moluscos</label>
         </div>
 
-        <button class="print-btn" onclick="window.print()">🖨️ IMPRIMIR (2 ETIQUETAS)</button>
+        <button class="print-btn" onclick="window.print()">🖨️ IMPRIMIR ETIQUETAS</button>
     </div>
 
     <div class="labels-container">
-        
         <div class="preview-container">
             <div class="label-preview">
-                <div class="label-header">
-                    <img src="logo.png" alt="Gamarra" onerror="this.style.opacity='0'">
-                </div>
-                
+                <div class="label-header"><img src="logo.png" alt="Gamarra" onerror="this.style.opacity='0'"></div>
                 <div class="product-name" id="out-plato">NOMBRE DEL PLATO</div>
-                
                 <div class="section-title">Regeneración</div>
                 <div class="reg-text" id="out-reg">Instrucciones de servicio...</div>
-
-                <div class="dates-box">
-                    <span>ELAB: <span id="out-prod">--/--/--</span></span>
-                    <span>CAD: <span id="out-cad">--/--/--</span></span>
-                </div>
-
+                <div class="dates-box"><span>ELAB: <span id="out-prod">--/--/--</span></span><span>CAD: <span id="out-cad">--/--/--</span></span></div>
                 <div class="section-title">Información de Alérgenos</div>
                 <div class="allergens-icons-wrapper" id="out-allergens">
                     <div class="allergen-icon">🌾</div><div class="allergen-icon">🦐</div><div class="allergen-icon">🥚</div><div class="allergen-icon">🐟</div><div class="allergen-icon">🥜</div><div class="allergen-icon">🫘</div><div class="allergen-icon">🥛</div><div class="allergen-icon">🌰</div><div class="allergen-icon">🌱</div><div class="allergen-icon">🌭</div><div class="allergen-icon">🍪</div><div class="allergen-icon">🧪</div><div class="allergen-icon">🌼</div><div class="allergen-icon">🐚</div>
                 </div>
-
-                <div class="label-footer">
-                    <div id="qrcode"></div>
-                    <div class="qr-info">ESCANEAME PARA<br>VER RECETA E<br>HISTORIA DEL PLATO</div>
-                </div>
+                <div class="label-footer"><div id="qrcode"></div><div class="qr-info">ESCANEAME PARA<br>VER RECETA E<br>HISTORIA DEL PLATO</div></div>
             </div>
         </div>
 
         <div class="preview-container">
             <div class="label-preview">
-                <div class="label-header" style="border:none; margin-bottom:0; padding-bottom:0;">
-                    <div style="font-size: 8pt; font-weight: bold; text-align: center;">INFORMACIÓN ADICIONAL</div>
-                </div>
-                
-                <div class="section-title" style="margin-top:2mm;">Ingredientes</div>
-                <div class="ing-text" id="out-ing">
-                    <strong>Ingredientes:</strong> Esperando datos...
-                </div>
-
+                <div class="label-header" style="border:none; margin-bottom:0; padding-bottom:0;"><div style="font-size: 8pt; font-weight: bold; text-align: center;">INFORMACIÓN ADICIONAL</div></div>
+                <div class="section-title" style="margin-top:2mm;">Ingredientes extraídos</div>
+                <div class="ing-text" id="out-ing"><strong>Ingredientes:</strong> Esperando PDF...</div>
                 <div class="section-title" style="margin-top:auto;">Información Nutricional (Por 100g)</div>
                 <table class="nutrition-table">
                     <tr><th>Valor Energético</th><td id="nut-cal">--- kcal</td></tr>
@@ -170,7 +166,6 @@
                 </table>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -191,56 +186,121 @@
     function update() {
         document.getElementById('out-plato').innerText = document.getElementById('in-plato').value.toUpperCase() || "NOMBRE DEL PLATO";
         document.getElementById('out-reg').innerText = document.getElementById('in-reg').value || "Instrucciones...";
-        
         let ingText = document.getElementById('in-ing').value;
         document.getElementById('out-ing').innerHTML = "<strong>Ingredientes:</strong> " + (ingText || "No especificados.");
-
         document.getElementById('out-prod').innerText = formatDate(document.getElementById('in-prod').value);
         document.getElementById('out-cad').innerText = formatDate(document.getElementById('in-cad').value);
         
         const checks = document.querySelectorAll('.alg');
         const iconsFront = document.querySelectorAll('.allergen-icon');
-        
         checks.forEach((c, i) => {
             if(c.checked) iconsFront[i].classList.add('active');
             else iconsFront[i].classList.remove('active');
         });
     }
 
-    // --- MAGIA: SIMULACIÓN DE EXTRACCIÓN DEL PDF DE GASTROKAIZEN ---
-    function fillFromPDF() {
-        // 1. Rellenar Plato
-        document.getElementById('in-plato').value = "Apple Crumble (Unax Barrio)";
-        
-        // 2. Rellenar Ingredientes ordenados (calculados del PDF sumando gramos)
-        const ingredientesCalculados = "Manzana golden (35%), Harina de trigo floja (13%), Leche (11%), Mantequilla (8%), Azúcar (blanco y moreno) (10%), Nata para montar (6%), Yemas (2%), Zumo de limón, Vainilla, Sal fina, Canela molida. Puede contener trazas de frutos de cáscara, cacahuete, soja y sésamo.";
-        document.getElementById('in-ing').value = ingredientesCalculados;
+    // --- MOTOR REAL DE LECTURA DE PDF ---
+    async function processPDF(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-        // 3. Rellenar Alérgenos (Gluten, Huevos, Lácteos) basados en la tabla del PDF
-        document.getElementById('alg-0').checked = true; // Gluten
-        document.getElementById('alg-2').checked = true; // Huevos
-        document.getElementById('alg-6').checked = true; // Lácteos
+        document.getElementById('loading-msg').style.display = 'block';
+
+        const fileReader = new FileReader();
+        fileReader.onload = async function() {
+            try {
+                const typedarray = new Uint8Array(this.result);
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let fullTextArray = [];
+
+                // Extraer texto de todas las páginas
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    textContent.items.forEach(item => {
+                        if(item.str.trim().length > 0) fullTextArray.push(item.str.trim());
+                    });
+                }
+
+                console.log("Texto extraído del PDF:", fullTextArray);
+                analizarDatosGastroKaizen(fullTextArray);
+
+            } catch (error) {
+                alert("Error al leer el PDF. Asegúrate de que es un documento original y no una imagen escaneada.");
+                console.error(error);
+            } finally {
+                document.getElementById('loading-msg').style.display = 'none';
+            }
+        };
+        fileReader.readAsArrayBuffer(file);
+    }
+
+    // Analiza el array de textos extraído del PDF
+    function analizarDatosGastroKaizen(textArray) {
+        // 1. Extraer el Nombre del Plato
+        // En GastroKaizen, el nombre suele estar justo antes de "Ración: Plato"
+        let indexRacion = textArray.findIndex(text => text.includes("Ración:"));
+        if (indexRacion > 0) {
+            document.getElementById('in-plato').value = textArray[indexRacion - 1];
+        }
+
+        // 2. Extraer Alérgenos
+        // Limpiamos los checks previos
+        const checks = document.querySelectorAll('.alg');
+        checks.forEach(c => c.checked = false);
+
+        // Si encontramos la palabra "ALÉRGENOS", analizamos esa zona
+        let indexAlergenos = textArray.indexOf("ALÉRGENOS");
+        if (indexAlergenos !== -1) {
+            // Un motor básico: Busca los nombres de los alérgenos comunes en el texto
+            // GastroKaizen marca con 'A' o 'T'. Esta es una aproximación para capturarlo.
+            const alergenosNombres = ["Gluten", "Huevos", "Leche", "Pescado", "Cacahuete", "Soja", "F.cáscara", "Sésamo", "Crustáceos", "Apio", "Mostaza", "Sulfitos", "Altramuces", "Moluscos"];
+            
+            // Si el texto incluye el nombre del alérgeno cerca de la tabla, lo marcamos (Simplificado por seguridad)
+            let textoUnido = textArray.join(" ");
+            checks.forEach(checkbox => {
+                let nombreAlg = checkbox.getAttribute('data-name');
+                if (textoUnido.includes(nombreAlg)) {
+                    // Nota: Idealmente habría que asociar la "A" de la columna, pero como
+                    // el PDF desordena las columnas al extraer el texto, marcamos si aparece mencionado.
+                    checkbox.checked = true; 
+                }
+            });
+        }
+
+        // 3. Extraer Ingredientes
+        // Buscamos líneas que parezcan ingredientes (antes de palabras como "kg", "g", "ml")
+        let ingredientesEncontrados = [];
+        for (let i = 0; i < textArray.length; i++) {
+            if (textArray[i] === "Ingredientes") {
+                // Empezar a recolectar los próximos ítems hasta que veamos "Procedimiento" o "ALÉRGENOS"
+                let j = i + 3; // Saltamos encabezados
+                while (j < textArray.length && textArray[j] !== "Procedimiento" && textArray[j] !== "ALÉRGENOS") {
+                    let text = textArray[j];
+                    // Si el texto no es un peso (no contiene g, kg, ml) y es largo, es un ingrediente
+                    if (text.length > 3 && !text.includes(" g") && !text.includes(" kg") && !text.includes(" ml") && text !== "Peso") {
+                        ingredientesEncontrados.push(text);
+                    }
+                    j++;
+                }
+            }
+        }
         
-        // 4. Fechas (Hoy y caducidad en 3 días)
+        // Limpiar duplicados y formatear
+        let ingredientesUnicos = [...new Set(ingredientesEncontrados)];
+        if(ingredientesUnicos.length > 0) {
+            document.getElementById('in-ing').value = ingredientesUnicos.join(", ") + ".";
+        }
+
+        // 4. Fechas (Ponemos las de hoy por defecto)
         let hoy = new Date();
         let cad = new Date(); cad.setDate(hoy.getDate() + 3);
         document.getElementById('in-prod').valueAsDate = hoy;
         document.getElementById('in-cad').valueAsDate = cad;
 
-        // 5. Rellenar Tabla Nutricional (Valores estimados para la demo)
-        document.getElementById('nut-cal').innerText = "285 kcal";
-        document.getElementById('nut-fat').innerText = "12.5 g";
-        document.getElementById('nut-sat').innerText = "7.2 g";
-        document.getElementById('nut-car').innerText = "38.4 g";
-        document.getElementById('nut-sug').innerText = "22.1 g";
-        document.getElementById('nut-pro').innerText = "4.2 g";
-        document.getElementById('nut-sal').innerText = "0.3 g";
-
-        // Forzar actualización visual
         update();
     }
-    
-    // Iniciar
+
     update();
 </script>
 </body>
