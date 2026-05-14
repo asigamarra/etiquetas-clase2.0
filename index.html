@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Etiquetas - Gamarra v5.2</title>
+    <title>Generador de Etiquetas - Gamarra v5.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
@@ -45,7 +45,9 @@
         .labels-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: flex-start; flex: 2; }
         .label-pair { display: flex; gap: 15px; margin-bottom: 30px; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #ddd; }
 
-        .label-preview { width: 62mm; height: 100mm; background: white; border: 1px solid #000; padding: 2mm; box-sizing: border-box; display: flex; flex-direction: column; position: relative; overflow: hidden; color: black; }
+        /* Ajuste de padding inferior de 2mm a 3.5mm para subir el QR */
+        .label-preview { width: 62mm; height: 100mm; background: white; border: 1px solid #000; padding: 2mm 2mm 3.5mm 2mm; box-sizing: border-box; display: flex; flex-direction: column; position: relative; overflow: hidden; color: black; }
+        
         .label-header { text-align: center; border-bottom: 1px solid #000; padding-bottom: 1mm; margin-bottom: 1mm; }
         .product-name { text-align: center; font-weight: 900; font-size: 10pt; margin-bottom: 1mm; text-transform: uppercase; display: flex; align-items: center; justify-content: center; min-height: 35px; line-height: 1.1;}
         .section-title { font-weight: bold; font-size: 6.5pt; border-bottom: 1px solid #000; margin-bottom: 1mm; text-transform: uppercase; background: #eee; padding-left: 1mm; }
@@ -58,13 +60,15 @@
         .allergen-icon { width: 8.5mm; height: 8.5mm; border: 0.5px solid #ccc; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 11pt; position: relative; color: #ccc;}
         .allergen-icon.active { color: #000; border-color: #000; }
         .allergen-icon.active::after { content: '✕'; position: absolute; font-size: 14pt; color: red; font-weight: bold; }
-        .label-footer { margin-top: auto; display: flex; align-items: center; gap: 8px; border-top: 1px solid #000; padding-top: 2mm; }
+        
+        /* Pequeño margen extra en el footer */
+        .label-footer { margin-top: auto; display: flex; align-items: center; gap: 10px; border-top: 1px solid #000; padding-top: 2mm; margin-bottom: 0.5mm; }
+        
         .nutrition-table { width: 100%; border-collapse: collapse; font-size: 6.5pt; margin-top: 1mm; }
         .nutrition-table th, .nutrition-table td { border: 1px solid #000; padding: 0.8mm; text-align: left; }
 
-        /* MAGIA PARA EL PDF (Solo se activa al Imprimir/Guardar como PDF) */
+        /* MAGIA PARA EL PDF */
         @media print {
-            /* Forzar a que la página del PDF mida exactamente 62x100mm */
             @page {
                 size: 62mm 100mm;
                 margin: 0mm;
@@ -75,15 +79,14 @@
             .labels-container { display: block; margin: 0; padding: 0; gap: 0; }
             .label-pair { border: none; padding: 0; margin: 0; display: block; box-shadow: none; }
             
-            /* Cada etiqueta es exactamente una hoja del PDF */
             .label-preview { 
                 width: 62mm; 
                 height: 100mm; 
                 border: none; 
                 margin: 0; 
-                padding: 2mm; 
+                padding: 2mm 2mm 3.5mm 2mm; 
                 box-shadow: none;
-                page-break-after: always; /* Salto de página entre etiquetas */
+                page-break-after: always;
                 page-break-inside: avoid;
             }
         }
@@ -133,7 +136,6 @@
     let globalRecipes = [];
     let qrCodes = [];
 
-    // Fechas por defecto
     let d = new Date();
     document.getElementById('global-prod').valueAsDate = d;
     let d3 = new Date(); d3.setDate(d.getDate() + 3);
@@ -232,7 +234,7 @@ Texto: ${rawPDFText}`;
                         </div>
                         <div class="section-title">Alérgenos</div>
                         <div class="allergens-icons-wrapper">${ics}</div>
-                        <div class="label-footer"><div id="qr-${idx}"></div><div style="font-size:5.5pt">RECETA COMPLETA<br>EN EL QR</div></div>
+                        <div class="label-footer"><div id="qr-${idx}"></div><div style="font-size:5.5pt; line-height:1.2;">RECETA COMPLETA<br>EN EL QR</div></div>
                     </div>
                     <div class="label-preview">
                         <div class="section-title" style="margin-top:2mm">Ingredientes</div>
@@ -254,7 +256,8 @@ Texto: ${rawPDFText}`;
         setTimeout(() => {
             let url = document.getElementById('global-qr').value;
             globalRecipes.forEach((_, i) => {
-                qrCodes[i] = new QRCode(document.getElementById(`qr-${i}`), { text: url, width: 42, height: 42 });
+                // AQUÍ: El tamaño del QR sube de 42 a 48
+                qrCodes[i] = new QRCode(document.getElementById(`qr-${i}`), { text: url, width: 48, height: 48 });
             });
         }, 100);
     }
