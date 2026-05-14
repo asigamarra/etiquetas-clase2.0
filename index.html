@@ -3,138 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gamarra - Control de Producción</title>
+    <title>Gamarra - Generador v2.0 (Doble Etiqueta)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { 
-            --primary: #2c3e50; 
-            --bg: #f4f7f6; 
-        }
-        
-        body { 
-            font-family: 'Helvetica Neue', Arial, sans-serif; 
-            background: var(--bg); 
-            margin: 0; 
-            padding: 10px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-        }
+        :root { --primary: #2c3e50; --bg: #f4f7f6; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .main-wrapper { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 1200px; }
+        @media (min-width: 900px) { .main-wrapper { flex-direction: row; align-items: flex-start; } }
 
-        .main-wrapper { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 20px; 
-            width: 100%; 
-            max-width: 1000px; 
-        }
-
-        @media (min-width: 768px) { 
-            .main-wrapper { flex-direction: row; align-items: flex-start; } 
-        }
-
-        /* Panel Formulario (Izquierda) */
-        .admin-panel { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-            flex: 1; 
-        }
-
+        /* Panel Formulario */
+        .admin-panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); flex: 1; max-height: 95vh; overflow-y: auto;}
         h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
         label { display: block; margin-top: 10px; font-weight: bold; font-size: 0.85rem; }
-        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        
+        .pdf-btn { width: 100%; background: #e67e22; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
 
-        .allergen-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
-            gap: 8px; margin-top: 10px; 
-        }
-        .allergen-item { 
-            background: #f9f9f9; padding: 8px; border-radius: 6px; border: 1px solid #eee;
-            display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.8rem;
-        }
-        .allergen-item input { width: 18px; height: 18px; margin: 0; }
+        .allergen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 10px; }
+        .allergen-item { background: #f9f9f9; padding: 6px; border-radius: 6px; border: 1px solid #eee; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.75rem; }
+        .allergen-item input { width: 16px; height: 16px; margin: 0; }
+        .print-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem;}
 
-        .print-btn { 
-            width: 100%; background: var(--primary); color: white; border: none; 
-            padding: 15px; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; 
-        }
+        /* CONTENEDOR DE ETIQUETAS */
+        .labels-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
 
-        /* VISTA PREVIA ETIQUETA (62x100mm) */
-        .preview-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        /* ESTILOS COMUNES ETIQUETAS (62x100mm) */
+        .label-preview {
+            width: 62mm; height: 100mm; background: white; border: 1px dashed #999;
+            padding: 2mm; box-sizing: border-box; display: flex; flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; overflow: hidden;
         }
 
-        #label-preview {
-            width: 62mm; height: 100mm; 
-            background: white; border: 1px solid #000;
-            padding: 2mm; box-sizing: border-box; 
-            display: flex; flex-direction: column;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-
-        /* AJUSTE LOGO: Más pequeño para ganar espacio */
+        /* ETIQUETA 1: FRONTAL */
         .label-header { text-align: center; border-bottom: 1px solid #000; padding-bottom: 1mm; margin-bottom: 1mm; }
         .label-header img { max-width: 70%; max-height: 8mm; object-fit: contain; }
-        
-        .product-name { 
-            text-align: center; font-weight: 900; font-size: 12pt; 
-            margin-bottom: 1mm; text-transform: uppercase; 
-            min-height: 20pt; display: flex; align-items: center; justify-content: center;
-        }
-        
-        .section-title { 
-            font-weight: bold; font-size: 7pt; border-bottom: 1px solid #000; 
-            margin-bottom: 1mm; text-transform: uppercase; background: #eee; padding-left: 1mm; 
-        }
-        
-        .reg-text { font-size: 8pt; line-height: 1.1; margin-bottom: 2mm; white-space: pre-wrap; flex-grow: 1; }
-        
-        /* Caja de Fechas */
-        .dates-box {
-            display: flex;
-            justify-content: space-between;
-            font-size: 7.5pt;
-            border-top: 1px solid #000;
-            border-bottom: 1px solid #000;
-            padding: 1.5mm 0;
-            margin-bottom: 1mm;
-            font-family: monospace;
-            font-weight: bold;
-        }
-
-        /* Iconos Alérgenos */
-        .allergens-icons-wrapper { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); 
-            gap: 1.5mm; 
-            margin: 1mm 0; 
-            padding: 0 1mm;
-        }
-        
-        .allergen-icon { 
-            width: 8.5mm; height: 8.5mm; border: 0.5px solid #ccc; border-radius: 2px;
-            display: flex; align-items: center; justify-content: center; font-size: 11pt; position: relative; 
-        }
-        .allergen-icon.active::after { 
-            content: '✕'; position: absolute; font-size: 14pt; color: red; font-weight: bold; 
-        }
-
-        .label-footer { 
-            margin-top: auto; display: flex; align-items: center; gap: 8px; 
-            border-top: 1px solid #000; padding-top: 2mm; 
-        }
+        .product-name { text-align: center; font-weight: 900; font-size: 11pt; margin-bottom: 1mm; text-transform: uppercase; min-height: 18pt; display: flex; align-items: center; justify-content: center;}
+        .section-title { font-weight: bold; font-size: 6.5pt; border-bottom: 1px solid #000; margin-bottom: 1mm; text-transform: uppercase; background: #eee; padding-left: 1mm; }
+        .reg-text { font-size: 7.5pt; line-height: 1.1; margin-bottom: 2mm; white-space: pre-wrap; flex-grow: 1; }
+        .dates-box { display: flex; justify-content: space-between; font-size: 7pt; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 1mm 0; margin-bottom: 1mm; font-family: monospace; font-weight: bold; }
+        .allergens-icons-wrapper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5mm; margin: 1mm 0; padding: 0 1mm; }
+        .allergen-icon { width: 8.5mm; height: 8.5mm; border: 0.5px solid #ccc; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 11pt; position: relative; }
+        .allergen-icon.active::after { content: '✕'; position: absolute; font-size: 14pt; color: red; font-weight: bold; }
+        .label-footer { margin-top: auto; display: flex; align-items: center; gap: 8px; border-top: 1px solid #000; padding-top: 2mm; }
         #qrcode { background: white; }
-        .qr-info { font-size: 6pt; font-weight: bold; line-height: 1.1; text-transform: uppercase; }
+        .qr-info { font-size: 5.5pt; font-weight: bold; line-height: 1.1; text-transform: uppercase; }
+
+        /* ETIQUETA 2: TRASERA (Ingredientes y Nutrición) */
+        .ing-text { font-size: 6pt; line-height: 1.2; text-align: justify; margin-bottom: 2mm; }
+        .ing-text strong { text-transform: uppercase; }
+        .nutrition-table { width: 100%; border-collapse: collapse; font-size: 6.5pt; margin-top: 2mm; }
+        .nutrition-table th, .nutrition-table td { border: 1px solid #000; padding: 1mm; text-align: left; }
+        .nutrition-table th { font-weight: bold; text-align: center; }
+        .nutrition-table .sub { padding-left: 3mm; font-size: 6pt; }
 
         @media print {
             body { background: white; padding: 0; }
             .admin-panel, .preview-container > span { display: none; }
-            #label-preview { position: fixed; top: 0; left: 0; border: none; box-shadow: none; width: 62mm; height: 100mm; }
+            .labels-container { gap: 0; }
+            /* Salto de página para que salgan en etiquetas separadas en el rollo de impresión */
+            .label-preview { border: none; box-shadow: none; page-break-after: always; margin: 0;}
         }
     </style>
 </head>
@@ -142,98 +69,113 @@
 
 <div class="main-wrapper">
     <div class="admin-panel">
-        <h2>Gamarra - Gestión de Producción</h2>
+        <h2>Panel v2.0 (Multietiqueta)</h2>
         
+        <button class="pdf-btn" onclick="fillFromPDF()">📄 Extraer datos de PDF GastroKAIZEN (Auto-relleno)</button>
+
         <label>Nombre del Plato</label>
-        <input type="text" id="in-plato" oninput="update()" placeholder="Ej: Lasaña de Carne">
+        <input type="text" id="in-plato" oninput="update()" placeholder="Ej: Lasaña">
         
+        <label>Lista de Ingredientes (Ordenados por cantidad)</label>
+        <textarea id="in-ing" oninput="update()" rows="3" placeholder="Manzana golden (35%), Harina de trigo (13%), Leche (11%)..."></textarea>
+
         <label>Instrucciones de Regeneración</label>
-        <textarea id="in-reg" oninput="update()" rows="2" placeholder="Instrucciones..."></textarea>
+        <textarea id="in-reg" oninput="update()" rows="2"></textarea>
 
         <div style="display:flex; gap:10px;">
             <div style="flex:1">
-                <label>Fecha Producción</label>
+                <label>F. Producción</label>
                 <input type="date" id="in-prod" oninput="update()">
             </div>
             <div style="flex:1">
-                <label>Fecha Caducidad</label>
+                <label>F. Caducidad</label>
                 <input type="date" id="in-cad" oninput="update()">
             </div>
         </div>
 
-        <label>URL Receta / Vídeo (QR)</label>
-        <input type="text" id="in-qr" oninput="updateQR()" placeholder="https://youtube.com/...">
+        <label>URL Receta (QR)</label>
+        <input type="text" id="in-qr" oninput="updateQR()" value="https://gamarra.eus">
 
-        <label>Alérgenos Obligatorios (14)</label>
+        <label>Alérgenos (Marca los presentes)</label>
         <div class="allergen-grid">
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🌾 Gluten</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🦐 Crustáceos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🥚 Huevos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🐟 Pescado</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🥜 Cacahuetes</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🫘 Soja</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🥛 Lácteos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🌰 F. Cáscara</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🌱 Apio</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🌭 Mostaza</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🍪 Sésamo</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🧪 Sulfitos</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🌼 Altramuces</label>
-            <label class="allergen-item"><input type="checkbox" class="alg" onchange="update()"> 🐚 Moluscos</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-0" onchange="update()"> 🌾 Gluten</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-1" onchange="update()"> 🦐 Crustáceos</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-2" onchange="update()"> 🥚 Huevos</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-3" onchange="update()"> 🐟 Pescado</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-4" onchange="update()"> 🥜 Cacahuete</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-5" onchange="update()"> 🫘 Soja</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-6" onchange="update()"> 🥛 Lácteos</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-7" onchange="update()"> 🌰 F. Cáscara</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-8" onchange="update()"> 🌱 Apio</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-9" onchange="update()"> 🌭 Mostaza</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-10" onchange="update()"> 🍪 Sésamo</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-11" onchange="update()"> 🧪 Sulfitos</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-12" onchange="update()"> 🌼 Altramuz</label>
+            <label class="allergen-item"><input type="checkbox" class="alg" id="alg-13" onchange="update()"> 🐚 Moluscos</label>
         </div>
 
-        <button class="print-btn" onclick="window.print()">🖨️ IMPRIMIR ETIQUETA</button>
+        <button class="print-btn" onclick="window.print()">🖨️ IMPRIMIR (2 ETIQUETAS)</button>
     </div>
 
-    <div class="preview-container">
-        <span style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">Vista Previa (62x100mm)</span>
-        <div id="label-preview">
-            <div class="label-header">
-                <img src="logo.png" alt="Gamarra" onerror="this.style.opacity='0'">
-            </div>
-            
-            <div class="product-name" id="out-plato">NOMBRE DEL PLATO</div>
-            
-            <div class="section-title">Regeneración</div>
-            <div class="reg-text" id="out-reg">Instrucciones de servicio...</div>
+    <div class="labels-container">
+        
+        <div class="preview-container">
+            <div class="label-preview">
+                <div class="label-header">
+                    <img src="logo.png" alt="Gamarra" onerror="this.style.opacity='0'">
+                </div>
+                
+                <div class="product-name" id="out-plato">NOMBRE DEL PLATO</div>
+                
+                <div class="section-title">Regeneración</div>
+                <div class="reg-text" id="out-reg">Instrucciones de servicio...</div>
 
-            <div class="dates-box">
-                <span>ELAB: <span id="out-prod">--/--/--</span></span>
-                <span>CAD: <span id="out-cad">--/--/--</span></span>
-            </div>
+                <div class="dates-box">
+                    <span>ELAB: <span id="out-prod">--/--/--</span></span>
+                    <span>CAD: <span id="out-cad">--/--/--</span></span>
+                </div>
 
-            <div class="section-title">Información de Alérgenos</div>
-            <div class="allergens-icons-wrapper" id="out-allergens">
-                <div class="allergen-icon">🌾</div>
-                <div class="allergen-icon">🦐</div>
-                <div class="allergen-icon">🥚</div>
-                <div class="allergen-icon">🐟</div>
-                <div class="allergen-icon">🥜</div>
-                <div class="allergen-icon">🫘</div>
-                <div class="allergen-icon">🥛</div>
-                <div class="allergen-icon">🌰</div>
-                <div class="allergen-icon">🌱</div>
-                <div class="allergen-icon">🌭</div>
-                <div class="allergen-icon">🍪</div>
-                <div class="allergen-icon">🧪</div>
-                <div class="allergen-icon">🌼</div>
-                <div class="allergen-icon">🐚</div>
-            </div>
+                <div class="section-title">Información de Alérgenos</div>
+                <div class="allergens-icons-wrapper" id="out-allergens">
+                    <div class="allergen-icon">🌾</div><div class="allergen-icon">🦐</div><div class="allergen-icon">🥚</div><div class="allergen-icon">🐟</div><div class="allergen-icon">🥜</div><div class="allergen-icon">🫘</div><div class="allergen-icon">🥛</div><div class="allergen-icon">🌰</div><div class="allergen-icon">🌱</div><div class="allergen-icon">🌭</div><div class="allergen-icon">🍪</div><div class="allergen-icon">🧪</div><div class="allergen-icon">🌼</div><div class="allergen-icon">🐚</div>
+                </div>
 
-            <div class="label-footer">
-                <div id="qrcode"></div>
-                <div class="qr-info">ESCANEAME PARA<br>VER RECETA E<br>HISTORIA DEL PLATO</div>
+                <div class="label-footer">
+                    <div id="qrcode"></div>
+                    <div class="qr-info">ESCANEAME PARA<br>VER RECETA E<br>HISTORIA DEL PLATO</div>
+                </div>
             </div>
         </div>
+
+        <div class="preview-container">
+            <div class="label-preview">
+                <div class="label-header" style="border:none; margin-bottom:0; padding-bottom:0;">
+                    <div style="font-size: 8pt; font-weight: bold; text-align: center;">INFORMACIÓN ADICIONAL</div>
+                </div>
+                
+                <div class="section-title" style="margin-top:2mm;">Ingredientes</div>
+                <div class="ing-text" id="out-ing">
+                    <strong>Ingredientes:</strong> Esperando datos...
+                </div>
+
+                <div class="section-title" style="margin-top:auto;">Información Nutricional (Por 100g)</div>
+                <table class="nutrition-table">
+                    <tr><th>Valor Energético</th><td id="nut-cal">--- kcal</td></tr>
+                    <tr><th>Grasas</th><td id="nut-fat">--- g</td></tr>
+                    <tr><td class="sub">de las cuales saturadas</td><td id="nut-sat">--- g</td></tr>
+                    <tr><th>Hidratos de Carbono</th><td id="nut-car">--- g</td></tr>
+                    <tr><td class="sub">de los cuales azúcares</td><td id="nut-sug">--- g</td></tr>
+                    <tr><th>Proteínas</th><td id="nut-pro">--- g</td></tr>
+                    <tr><th>Sal</th><td id="nut-sal">--- g</td></tr>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
-    var qrcode = new QRCode(document.getElementById("qrcode"), {
-        text: "https://gamarra.eus",
-        width: 60,
-        height: 60
-    });
+    var qrcode = new QRCode(document.getElementById("qrcode"), { text: "https://gamarra.eus", width: 45, height: 45 });
 
     function updateQR() {
         var url = document.getElementById('in-qr').value;
@@ -250,16 +192,56 @@
         document.getElementById('out-plato').innerText = document.getElementById('in-plato').value.toUpperCase() || "NOMBRE DEL PLATO";
         document.getElementById('out-reg').innerText = document.getElementById('in-reg').value || "Instrucciones...";
         
+        let ingText = document.getElementById('in-ing').value;
+        document.getElementById('out-ing').innerHTML = "<strong>Ingredientes:</strong> " + (ingText || "No especificados.");
+
         document.getElementById('out-prod').innerText = formatDate(document.getElementById('in-prod').value);
         document.getElementById('out-cad').innerText = formatDate(document.getElementById('in-cad').value);
         
         const checks = document.querySelectorAll('.alg');
-        const icons = document.querySelectorAll('.allergen-icon');
+        const iconsFront = document.querySelectorAll('.allergen-icon');
+        
         checks.forEach((c, i) => {
-            if(c.checked) icons[i].classList.add('active');
-            else icons[i].classList.remove('active');
+            if(c.checked) iconsFront[i].classList.add('active');
+            else iconsFront[i].classList.remove('active');
         });
     }
+
+    // --- MAGIA: SIMULACIÓN DE EXTRACCIÓN DEL PDF DE GASTROKAIZEN ---
+    function fillFromPDF() {
+        // 1. Rellenar Plato
+        document.getElementById('in-plato').value = "Apple Crumble (Unax Barrio)";
+        
+        // 2. Rellenar Ingredientes ordenados (calculados del PDF sumando gramos)
+        const ingredientesCalculados = "Manzana golden (35%), Harina de trigo floja (13%), Leche (11%), Mantequilla (8%), Azúcar (blanco y moreno) (10%), Nata para montar (6%), Yemas (2%), Zumo de limón, Vainilla, Sal fina, Canela molida. Puede contener trazas de frutos de cáscara, cacahuete, soja y sésamo.";
+        document.getElementById('in-ing').value = ingredientesCalculados;
+
+        // 3. Rellenar Alérgenos (Gluten, Huevos, Lácteos) basados en la tabla del PDF
+        document.getElementById('alg-0').checked = true; // Gluten
+        document.getElementById('alg-2').checked = true; // Huevos
+        document.getElementById('alg-6').checked = true; // Lácteos
+        
+        // 4. Fechas (Hoy y caducidad en 3 días)
+        let hoy = new Date();
+        let cad = new Date(); cad.setDate(hoy.getDate() + 3);
+        document.getElementById('in-prod').valueAsDate = hoy;
+        document.getElementById('in-cad').valueAsDate = cad;
+
+        // 5. Rellenar Tabla Nutricional (Valores estimados para la demo)
+        document.getElementById('nut-cal').innerText = "285 kcal";
+        document.getElementById('nut-fat').innerText = "12.5 g";
+        document.getElementById('nut-sat').innerText = "7.2 g";
+        document.getElementById('nut-car').innerText = "38.4 g";
+        document.getElementById('nut-sug').innerText = "22.1 g";
+        document.getElementById('nut-pro').innerText = "4.2 g";
+        document.getElementById('nut-sal').innerText = "0.3 g";
+
+        // Forzar actualización visual
+        update();
+    }
+    
+    // Iniciar
+    update();
 </script>
 </body>
 </html>
